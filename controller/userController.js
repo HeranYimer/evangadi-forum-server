@@ -10,8 +10,7 @@ export async function register(req, res) {
   //check if all fields are provided
   if (!email || !password || !first_name || !last_name || !username) {
     return res.status(StatusCodes.BAD_REQUEST).json({
-      msg: "please provide all required information!",
-      error: "All Fields are Required",
+      error: "please provide all required information!",
     });
   }
 
@@ -19,29 +18,30 @@ export async function register(req, res) {
   if (password.trim().length < 8) {
     return res
       .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "password must be at least 8 characters" });
+      .json({ error: "password must be at least 8 characters" });
   }
 
   try {
     //check if username or email already exists(row, field)
     const [user] = await pool.query(
-      "SELECT username, user_id from users where username = ? or email =?",
+      "SELECT username, email, user_id FROM users WHERE username = ? OR email = ?",
       [username, email]
     );
 
     if (user.length > 0) {
       if (user[0].email === email) {
-        return res
-          .status(StatusCodes.CONFLICT)
-          .json({ error: "An account with this email already exists" });
+        return res.status(StatusCodes.CONFLICT).json({
+          error: "An account with this email already exists",
+        });
       }
 
       if (user[0].username === username) {
-        return res
-          .status(StatusCodes.CONFLICT)
-          .json({ error: "This username is already taken" });
+        return res.status(StatusCodes.CONFLICT).json({
+          error: "This username is already taken",
+        });
       }
     }
+    
 
     //encrypt the password
     const salt = await bcrypt.genSalt(10);
@@ -54,7 +54,6 @@ export async function register(req, res) {
 
     return res.status(StatusCodes.CREATED).json({
       success: true,
-      status: 201,
       msg: "user created",
     });
   } catch (error) {
@@ -88,9 +87,7 @@ export async function login(req, res) {
 
     if (user.length == 0) {
       return res.status(StatusCodes.UNAUTHORIZED).json({
-        msg: "User not found",
-        error: "Invalid Credentials",
-        // error: "Invalid email or password.",//************************************************************************************************************BA
+        error: "Invalid email or password"
       });
     }
     //compare password
@@ -98,7 +95,7 @@ export async function login(req, res) {
     if (!isMatch) {
       return res
         .status(StatusCodes.UNAUTHORIZED)
-        .json({ msg: "invalid credential" });
+        .json({ error: "Invalid email or password" });
     }
 
     //json webtoken
@@ -124,20 +121,14 @@ export async function login(req, res) {
     console.log(error.message);
 
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      sucess: false,
-      msg: "something went wrong, try again later!",
+      success: false,
       error: `Login Failed. Please Try again Later ${error.message}`,
-
-      // console.error("Login error:", error); // Log full error internally
-      // res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      //   error: "An unexpected error occurred. Please try again later.",//*********************************************BA */
     });
   }
 }
 
 //CheckUser
 export async function checkUser(req, res) {
-  // req.user comes from JWT middleware(user info from verified token)
   const userId = req.user.user_id;
 
   try {
@@ -151,14 +142,12 @@ export async function checkUser(req, res) {
       console.warn(`User with ID ${userId} not found in DB`);
       return res.status(StatusCodes.NOT_FOUND).json({
         success: false,
-        status: 404,
         error: "User not found",
       });
     }
 
     res.status(StatusCodes.OK).json({
       success: true,
-      status: 200,
       message: "User profile retrieved successfully",
       user: users[0],
     });
@@ -166,7 +155,6 @@ export async function checkUser(req, res) {
     console.error("Get profile error:", error.message);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,
-      status: 500,
       error: "Failed to get user profile",
     });
   }

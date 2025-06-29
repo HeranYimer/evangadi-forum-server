@@ -9,7 +9,6 @@ export async function postAnswer(req, res) {
   if (!username || !user_id) {
     return res.status(StatusCodes.UNAUTHORIZED).json({
       success: false,
-      status: 401,
       error: "User Authentication Failed",
     });
   }
@@ -19,7 +18,6 @@ export async function postAnswer(req, res) {
   if (isNaN(userId)) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       success: false,
-      status: 400,
       error: "Invalid user ID",
     });
   }
@@ -28,7 +26,6 @@ export async function postAnswer(req, res) {
   if (!req.body) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       success: false,
-      status: 400,
       error: "Request body is missing",
     });
   }
@@ -41,7 +38,6 @@ export async function postAnswer(req, res) {
   if (!answer || !questionId) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       success: false,
-      status: 400,
       error: "Please provide all required fields(question_id and answer)",
     });
   }
@@ -49,7 +45,6 @@ export async function postAnswer(req, res) {
   if (isNaN(questionId)) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       success: false,
-      status: 400,
       error: "Invalid question ID",
     });
   }
@@ -58,7 +53,6 @@ export async function postAnswer(req, res) {
   if (answer.length < 10) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       success: false,
-      status: 400,
       error: "Answer must be at least 10 characters long",
     });
   }
@@ -66,7 +60,6 @@ export async function postAnswer(req, res) {
   if (answer.length > 5000) {
     return res.status(StatusCodes.UNPROCESSABLE_ENTITY).json({
       success: false,
-      status: 422,
       error: "Answer must not exceed 5000 characters",
     });
   }
@@ -81,7 +74,6 @@ export async function postAnswer(req, res) {
     if (questionCheck.length === 0) {
       return res.status(StatusCodes.NOT_FOUND).json({
         success: false,
-        status: 404,
         error: "Question Not Found",
       });
     }
@@ -100,7 +92,6 @@ export async function postAnswer(req, res) {
     //Success Response
     res.status(StatusCodes.CREATED).json({
       success: true,
-      status: 201,
       message: "Answer Posted Successful",
       answer_id: rows.insertId,
     });
@@ -113,7 +104,6 @@ export async function postAnswer(req, res) {
     // Return 500 Internal Server Error for any unexpected errors
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: "Internal Server Error",
-      message: "An unexpected error occurred.",
     });
   }
 }
@@ -125,14 +115,10 @@ export async function getAnswer(req, res) {
   const qid = parseInt(id);
 
   if (!qid || isNaN(qid)) {
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({
-        success: false,
-        status: "Error",
-        message: "Can't find answer for this questions",
-        error: "Invalid request parameter",
-      });
+    return res.status(StatusCodes.NOT_FOUND).json({
+      success: false,
+      error: "Can't find answer for this questions",
+    });
   }
 
   const selectAnswer = `
@@ -155,12 +141,10 @@ export async function getAnswer(req, res) {
         Answer: answers,
       });
   } catch (error) {
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({
-        success: false,
-        message: "Unable to retrieve answers",
-        error: `Internal server error ${error.message}`,
-      });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      error: `Unable to retrieve answers`,
+    });
   }
 }
+
